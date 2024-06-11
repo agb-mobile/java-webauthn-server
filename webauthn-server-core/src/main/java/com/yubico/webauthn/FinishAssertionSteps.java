@@ -55,7 +55,7 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
 
   private final AssertionRequest request;
   private final PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs>
-      response;
+          response;
   private final Optional<ByteArray> callerTokenBindingId;
   private final Set<String> origins;
   private final String rpId;
@@ -67,37 +67,37 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
   private final boolean isSecurePaymentConfirmation;
 
   static FinishAssertionSteps<RegisteredCredential> fromV1(
-      RelyingParty rp, FinishAssertionOptions options) {
+          RelyingParty rp, FinishAssertionOptions options) {
     final CredentialRepository credRepo = rp.getCredentialRepository();
     final CredentialRepositoryV1ToV2Adapter credRepoV2 =
-        new CredentialRepositoryV1ToV2Adapter(credRepo);
+            new CredentialRepositoryV1ToV2Adapter(credRepo);
     return new FinishAssertionSteps<>(
-        options.getRequest(),
-        options.getResponse(),
-        options.getCallerTokenBindingId(),
-        rp.getOrigins(),
-        rp.getIdentity().getId(),
-        credRepoV2,
-        Optional.of(credRepoV2),
-        rp.isAllowOriginPort(),
-        rp.isAllowOriginSubdomain(),
-        rp.isValidateSignatureCounter(),
-        options.isSecurePaymentConfirmation());
+            options.getRequest(),
+            options.getResponse(),
+            options.getCallerTokenBindingId(),
+            rp.getOrigins(),
+            rp.getIdentity().getId(),
+            credRepoV2,
+            Optional.of(credRepoV2),
+            rp.isAllowOriginPort(),
+            rp.isAllowOriginSubdomain(),
+            rp.isValidateSignatureCounter(),
+            options.isSecurePaymentConfirmation());
   }
 
   FinishAssertionSteps(RelyingPartyV2<C> rp, FinishAssertionOptions options) {
     this(
-        options.getRequest(),
-        options.getResponse(),
-        options.getCallerTokenBindingId(),
-        rp.getOrigins(),
-        rp.getIdentity().getId(),
-        rp.getCredentialRepository(),
-        Optional.ofNullable(rp.getUsernameRepository()),
-        rp.isAllowOriginPort(),
-        rp.isAllowOriginSubdomain(),
-        rp.isValidateSignatureCounter(),
-        options.isSecurePaymentConfirmation());
+            options.getRequest(),
+            options.getResponse(),
+            options.getCallerTokenBindingId(),
+            rp.getOrigins(),
+            rp.getIdentity().getId(),
+            rp.getCredentialRepository(),
+            Optional.ofNullable(rp.getUsernameRepository()),
+            rp.isAllowOriginPort(),
+            rp.isAllowOriginSubdomain(),
+            rp.isValidateSignatureCounter(),
+            options.isSecurePaymentConfirmation());
   }
 
   private Optional<String> getUsernameForUserHandle(final ByteArray userHandle) {
@@ -163,16 +163,16 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     @Override
     public void validate() {
       request
-          .getPublicKeyCredentialRequestOptions()
-          .getAllowCredentials()
-          .filter(allowCredentials -> !allowCredentials.isEmpty())
-          .ifPresent(
-              allowed -> {
-                assertTrue(
-                    allowed.stream().anyMatch(allow -> allow.getId().equals(response.getId())),
-                    "Unrequested credential ID: %s",
-                    response.getId());
-              });
+              .getPublicKeyCredentialRequestOptions()
+              .getAllowCredentials()
+              .filter(allowCredentials -> !allowCredentials.isEmpty())
+              .ifPresent(
+                      allowed -> {
+                        assertTrue(
+                                allowed.stream().anyMatch(allow -> allow.getId().equals(response.getId())),
+                                "Unrequested credential ID: %s",
+                                response.getId());
+                      });
     }
   }
 
@@ -197,29 +197,29 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
       responseUserHandle = response.getResponse().getUserHandle();
 
       effectiveRequestUserHandle =
-          OptionalUtil.orElseOptional(
-              requestedUserHandle,
-              () ->
-                  usernameRepository.flatMap(
-                      unr -> requestedUsername.flatMap(unr::getUserHandleForUsername)));
+              OptionalUtil.orElseOptional(
+                      requestedUserHandle,
+                      () ->
+                              usernameRepository.flatMap(
+                                      unr -> requestedUsername.flatMap(unr::getUserHandleForUsername)));
 
       effectiveRequestUsername =
-          OptionalUtil.orElseOptional(
-              requestedUsername,
-              () ->
-                  requestedUserHandle.flatMap(FinishAssertionSteps.this::getUsernameForUserHandle));
+              OptionalUtil.orElseOptional(
+                      requestedUsername,
+                      () ->
+                              requestedUserHandle.flatMap(FinishAssertionSteps.this::getUsernameForUserHandle));
 
       userHandleDerivedFromUsername =
-          !requestedUserHandle.isPresent() && effectiveRequestUserHandle.isPresent();
+              !requestedUserHandle.isPresent() && effectiveRequestUserHandle.isPresent();
 
       finalUserHandle = OptionalUtil.orOptional(effectiveRequestUserHandle, responseUserHandle);
       finalUsername =
-          OptionalUtil.orElseOptional(
-              effectiveRequestUsername,
-              () -> finalUserHandle.flatMap(FinishAssertionSteps.this::getUsernameForUserHandle));
+              OptionalUtil.orElseOptional(
+                      effectiveRequestUsername,
+                      () -> finalUserHandle.flatMap(FinishAssertionSteps.this::getUsernameForUserHandle));
 
       registration =
-          finalUserHandle.flatMap(uh -> credentialRepositoryV2.lookup(response.getId(), uh));
+              finalUserHandle.flatMap(uh -> credentialRepositoryV2.lookup(response.getId(), uh));
     }
 
     @Override
@@ -230,43 +230,46 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     @Override
     public void validate() {
       assertTrue(
-          !(request.getUsername().isPresent() && !usernameRepository.isPresent()),
-          "Cannot set request username when usernameRepository is not configured.");
+              !(request.getUsername().isPresent() && !usernameRepository.isPresent()),
+              "Cannot set request username when usernameRepository is not configured.");
 
       assertTrue(
-          finalUserHandle.isPresent(),
-          "Could not identify user to authenticate: none of requested username, requested user handle or response user handle are set.");
+              finalUserHandle.isPresent(),
+              "Could not identify user to authenticate: none of requested username, requested user handle or response user handle are set.");
 
       if (requestedUserHandle.isPresent() && responseUserHandle.isPresent()) {
         assertTrue(
-            requestedUserHandle.get().equals(responseUserHandle.get()),
-            "User handle set in request (%s) does not match user handle in response (%s).",
-            requestedUserHandle.get(),
-            responseUserHandle.get());
+                requestedUserHandle.get().equals(responseUserHandle.get()),
+                "User handle set in request (%s) does not match user handle in response (%s).",
+                requestedUserHandle.get(),
+                responseUserHandle.get());
       }
 
       if (userHandleDerivedFromUsername && responseUserHandle.isPresent()) {
         assertTrue(
-            effectiveRequestUserHandle.get().equals(responseUserHandle.get()),
-            "User handle in request (%s) (derived from username: %s) does not match user handle in response (%s).",
-            effectiveRequestUserHandle.get(),
-            requestedUsername.get(),
-            responseUserHandle.get());
+                effectiveRequestUserHandle.get().equals(responseUserHandle.get()),
+                "User handle in request (%s) (derived from username: %s) does not match user handle in response (%s).",
+                effectiveRequestUserHandle.get(),
+                requestedUsername.get(),
+                responseUserHandle.get());
       }
 
       assertTrue(registration.isPresent(), "Unknown credential: %s", response.getId());
 
+      System.out.println("User handle: " + new String(java.util.Base64.getUrlEncoder().encode(finalUserHandle.get().getBytes())));
+      System.out.println("User handle 2: " + registration.get().getUserHandle());
+      System.out.println("User handle 3: " + finalUserHandle.get());
       assertTrue(
-          finalUserHandle.get().equals(registration.get().getUserHandle()),
-          "User handle %s does not own credential %s",
-          finalUserHandle.get(),
-          response.getId());
+              finalUserHandle.get().equals(registration.get().getUserHandle()),
+              "User handle %s does not own credential %s",
+              finalUserHandle.get(),
+              response.getId());
 
       if (usernameRepository.isPresent()) {
         assertTrue(
-            finalUsername.isPresent(),
-            "Unknown username for user handle: %s",
-            finalUserHandle.get());
+                finalUsername.isPresent(),
+                "Unknown username for user handle: %s",
+                finalUserHandle.get());
       }
     }
   }
@@ -285,10 +288,10 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     @Override
     public void validate() {
       assertTrue(
-          credential.isPresent(),
-          "Unknown credential. Credential ID: %s, user handle: %s",
-          response.getId(),
-          userHandle);
+              credential.isPresent(),
+              "Unknown credential. Credential ID: %s, user handle: %s",
+              response.getId(),
+              userHandle);
     }
   }
 
@@ -354,12 +357,12 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     @Override
     public void validate() {
       final String expectedType =
-          isSecurePaymentConfirmation ? SPC_CLIENT_DATA_TYPE : CLIENT_DATA_TYPE;
+              isSecurePaymentConfirmation ? SPC_CLIENT_DATA_TYPE : CLIENT_DATA_TYPE;
       assertTrue(
-          expectedType.equals(clientData.getType()),
-          "The \"type\" in the client data must be exactly \"%s\", was: %s",
-          expectedType,
-          clientData.getType());
+              expectedType.equals(clientData.getType()),
+              "The \"type\" in the client data must be exactly \"%s\", was: %s",
+              expectedType,
+              clientData.getType());
     }
 
     @Override
@@ -376,11 +379,11 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     @Override
     public void validate() {
       assertTrue(
-          request
-              .getPublicKeyCredentialRequestOptions()
-              .getChallenge()
-              .equals(response.getResponse().getClientData().getChallenge()),
-          "Incorrect challenge.");
+              request
+                      .getPublicKeyCredentialRequestOptions()
+                      .getChallenge()
+                      .equals(response.getResponse().getClientData().getChallenge()),
+              "Incorrect challenge.");
     }
 
     @Override
@@ -398,9 +401,9 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     public void validate() {
       final String responseOrigin = response.getResponse().getClientData().getOrigin();
       assertTrue(
-          OriginMatcher.isAllowed(responseOrigin, origins, allowOriginPort, allowOriginSubdomain),
-          "Incorrect origin, please see the RelyingParty.origins setting: %s",
-          responseOrigin);
+              OriginMatcher.isAllowed(responseOrigin, origins, allowOriginPort, allowOriginSubdomain),
+              "Incorrect origin, please see the RelyingParty.origins setting: %s",
+              responseOrigin);
     }
 
     @Override
@@ -417,7 +420,7 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     @Override
     public void validate() {
       TokenBindingValidator.validate(
-          response.getResponse().getClientData().getTokenBinding(), callerTokenBindingId);
+              response.getResponse().getClientData().getTokenBinding(), callerTokenBindingId);
     }
 
     @Override
@@ -435,17 +438,17 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     public void validate() {
       try {
         assertTrue(
-            Crypto.sha256(rpId)
-                .equals(response.getResponse().getParsedAuthenticatorData().getRpIdHash()),
-            "Wrong RP ID hash.");
+                Crypto.sha256(rpId)
+                        .equals(response.getResponse().getParsedAuthenticatorData().getRpIdHash()),
+                "Wrong RP ID hash.");
       } catch (IllegalArgumentException e) {
         Optional<AppId> appid =
-            request.getPublicKeyCredentialRequestOptions().getExtensions().getAppid();
+                request.getPublicKeyCredentialRequestOptions().getExtensions().getAppid();
         if (appid.isPresent()) {
           assertTrue(
-              Crypto.sha256(appid.get().getId())
-                  .equals(response.getResponse().getParsedAuthenticatorData().getRpIdHash()),
-              "Wrong RP ID hash.");
+                  Crypto.sha256(appid.get().getId())
+                          .equals(response.getResponse().getParsedAuthenticatorData().getRpIdHash()),
+                  "Wrong RP ID hash.");
         } else {
           throw e;
         }
@@ -466,8 +469,8 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     @Override
     public void validate() {
       assertTrue(
-          response.getResponse().getParsedAuthenticatorData().getFlags().UP,
-          "User Presence is required.");
+              response.getResponse().getParsedAuthenticatorData().getFlags().UP,
+              "User Presence is required.");
     }
 
     @Override
@@ -484,12 +487,12 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     @Override
     public void validate() {
       if (request
-          .getPublicKeyCredentialRequestOptions()
-          .getUserVerification()
-          .equals(Optional.of(UserVerificationRequirement.REQUIRED))) {
+              .getPublicKeyCredentialRequestOptions()
+              .getUserVerification()
+              .equals(Optional.of(UserVerificationRequirement.REQUIRED))) {
         assertTrue(
-            response.getResponse().getParsedAuthenticatorData().getFlags().UV,
-            "User Verification is required.");
+                response.getResponse().getParsedAuthenticatorData().getFlags().UV,
+                "User Verification is required.");
       }
     }
 
@@ -500,8 +503,8 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
   }
 
   @Value
-  // Step 16 in editor's draft as of 2022-11-09 https://w3c.github.io/webauthn/
-  // TODO: Finalize this when spec matures
+          // Step 16 in editor's draft as of 2022-11-09 https://w3c.github.io/webauthn/
+          // TODO: Finalize this when spec matures
   class PendingStep16 implements Step<C, Step18> {
     private final Optional<String> username;
     private final C credential;
@@ -509,13 +512,13 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     @Override
     public void validate() {
       assertTrue(
-          !credential.isBackupEligible().isPresent()
-              || response.getResponse().getParsedAuthenticatorData().getFlags().BE
-                  == credential.isBackupEligible().get(),
-          "Backup eligibility must not change; Stored: BE=%s, received: BE=%s for credential: %s",
-          credential.isBackupEligible(),
-          response.getResponse().getParsedAuthenticatorData().getFlags().BE,
-          credential.getCredentialId());
+              !credential.isBackupEligible().isPresent()
+                      || response.getResponse().getParsedAuthenticatorData().getFlags().BE
+                      == credential.isBackupEligible().get(),
+              "Backup eligibility must not change; Stored: BE=%s, received: BE=%s for credential: %s",
+              credential.isBackupEligible(),
+              response.getResponse().getParsedAuthenticatorData().getFlags().BE,
+              credential.getCredentialId());
     }
 
     @Override
@@ -573,20 +576,20 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
         key = WebAuthnCodecs.importCosePublicKey(cose);
       } catch (IOException | InvalidKeySpecException e) {
         throw new IllegalArgumentException(
-            String.format(
-                "Failed to decode public key: Credential ID: %s COSE: %s",
-                credential.getCredentialId().getBase64Url(), cose.getBase64Url()),
-            e);
+                String.format(
+                        "Failed to decode public key: Credential ID: %s COSE: %s",
+                        credential.getCredentialId().getBase64Url(), cose.getBase64Url()),
+                e);
       } catch (NoSuchAlgorithmException e) {
         throw new RuntimeException(e);
       }
 
       final COSEAlgorithmIdentifier alg =
-          COSEAlgorithmIdentifier.fromPublicKey(cose)
-              .orElseThrow(
-                  () ->
-                      new IllegalArgumentException(
-                          String.format("Failed to decode \"alg\" from COSE key: %s", cose)));
+              COSEAlgorithmIdentifier.fromPublicKey(cose)
+                      .orElseThrow(
+                              () ->
+                                      new IllegalArgumentException(
+                                              String.format("Failed to decode \"alg\" from COSE key: %s", cose)));
 
       if (!Crypto.verifySignature(key, signedBytes(), response.getResponse().getSignature(), alg)) {
         throw new IllegalArgumentException("Invalid assertion signature.");
@@ -614,7 +617,7 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
       this.username = username;
       this.credential = credential;
       this.assertionSignatureCount =
-          response.getResponse().getParsedAuthenticatorData().getSignatureCounter();
+              response.getResponse().getParsedAuthenticatorData().getSignatureCounter();
       this.storedSignatureCountBefore = credential.getSignatureCount();
     }
 
@@ -622,13 +625,13 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     public void validate() throws InvalidSignatureCountException {
       if (validateSignatureCounter && !signatureCounterValid()) {
         throw new InvalidSignatureCountException(
-            response.getId(), storedSignatureCountBefore + 1, assertionSignatureCount);
+                response.getId(), storedSignatureCountBefore + 1, assertionSignatureCount);
       }
     }
 
     private boolean signatureCounterValid() {
       return (assertionSignatureCount == 0 && storedSignatureCountBefore == 0)
-          || assertionSignatureCount > storedSignatureCountBefore;
+              || assertionSignatureCount > storedSignatureCountBefore;
     }
 
     @Override
@@ -657,17 +660,17 @@ final class FinishAssertionSteps<C extends CredentialRecord> {
     @Override
     public Optional<AssertionResult> result() {
       return Optional.of(
-          new AssertionResult(
-              true,
-              response,
-              (RegisteredCredential) credential,
-              username.get(),
-              signatureCounterValid));
+              new AssertionResult(
+                      true,
+                      response,
+                      (RegisteredCredential) credential,
+                      username.get(),
+                      signatureCounterValid));
     }
 
     public Optional<AssertionResultV2<C>> resultV2() {
       return Optional.of(
-          new AssertionResultV2<C>(true, response, credential, signatureCounterValid));
+              new AssertionResultV2<C>(true, response, credential, signatureCounterValid));
     }
   }
 }
