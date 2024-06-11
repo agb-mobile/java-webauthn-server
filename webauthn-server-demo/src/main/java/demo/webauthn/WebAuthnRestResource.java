@@ -84,7 +84,7 @@ public class WebAuthnRestResource {
   private final JsonNodeFactory jsonFactory = JsonNodeFactory.instance;
 
   public WebAuthnRestResource()
-      throws InvalidAppIdException,
+          throws InvalidAppIdException,
           CertificateException,
           CertPathValidatorException,
           InvalidAlgorithmParameterException,
@@ -122,7 +122,7 @@ public class WebAuthnRestResource {
       authenticate = uriInfo.getAbsolutePathBuilder().path("authenticate").build().toURL();
       deleteAccount = uriInfo.getAbsolutePathBuilder().path("delete-account").build().toURL();
       deregister =
-          uriInfo.getAbsolutePathBuilder().path("action").path("deregister").build().toURL();
+              uriInfo.getAbsolutePathBuilder().path("action").path("deregister").build().toURL();
       register = uriInfo.getAbsolutePathBuilder().path("register").build().toURL();
     }
   }
@@ -170,39 +170,39 @@ public class WebAuthnRestResource {
   @Path("register")
   @POST
   public Response startRegistration(
-      @NonNull @FormParam("username") String username,
-      @NonNull @FormParam("displayName") String displayName,
-      @FormParam("credentialNickname") String credentialNickname,
-      @FormParam("requireResidentKey") @DefaultValue("false") boolean requireResidentKey,
-      @FormParam("sessionToken") String sessionTokenBase64)
-      throws MalformedURLException, ExecutionException {
+          @NonNull @FormParam("username") String username,
+          @NonNull @FormParam("displayName") String displayName,
+          @FormParam("credentialNickname") String credentialNickname,
+          @FormParam("requireResidentKey") @DefaultValue("false") boolean requireResidentKey,
+          @FormParam("sessionToken") String sessionTokenBase64)
+          throws MalformedURLException, ExecutionException {
     logger.trace(
-        "startRegistration username: {}, displayName: {}, credentialNickname: {}, requireResidentKey: {}",
-        username,
-        displayName,
-        credentialNickname,
-        requireResidentKey);
-    Either<String, RegistrationRequest> result =
-        server.startRegistration(
+            "startRegistration username: {}, displayName: {}, credentialNickname: {}, requireResidentKey: {}",
             username,
             displayName,
-            Optional.ofNullable(credentialNickname),
-            requireResidentKey
-                ? ResidentKeyRequirement.REQUIRED
-                : ResidentKeyRequirement.DISCOURAGED,
-            Optional.ofNullable(sessionTokenBase64)
-                .map(
-                    base64 -> {
-                      try {
-                        return ByteArray.fromBase64Url(base64);
-                      } catch (Base64UrlException e) {
-                        throw new RuntimeException(e);
-                      }
-                    }));
+            credentialNickname,
+            requireResidentKey);
+    Either<String, RegistrationRequest> result =
+            server.startRegistration(
+                    username,
+                    displayName,
+                    Optional.ofNullable(credentialNickname),
+                    requireResidentKey
+                            ? ResidentKeyRequirement.REQUIRED
+                            : ResidentKeyRequirement.DISCOURAGED,
+                    Optional.ofNullable(sessionTokenBase64)
+                            .map(
+                                    base64 -> {
+                                      try {
+                                        return ByteArray.fromBase64Url(base64);
+                                      } catch (Base64UrlException e) {
+                                        throw new RuntimeException(e);
+                                      }
+                                    }));
 
     if (result.isRight()) {
       return startResponse(
-          "startRegistration", new StartRegistrationResponse(result.right().get()));
+              "startRegistration", new StartRegistrationResponse(result.right().get()));
     } else {
       return messagesJson(Response.status(Status.BAD_REQUEST), result.left().get());
     }
@@ -213,12 +213,12 @@ public class WebAuthnRestResource {
   public Response finishRegistration(@NonNull String responseJson) {
     logger.trace("finishRegistration responseJson: {}", responseJson);
     Either<List<String>, WebAuthnServer.SuccessfulRegistrationResult> result =
-        server.finishRegistration(responseJson);
+            server.finishRegistration(responseJson);
     return finishResponse(
-        result,
-        "Attestation verification failed; further error message(s) were unfortunately lost to an internal server error.",
-        "finishRegistration",
-        responseJson);
+            result,
+            "Attestation verification failed; further error message(s) were unfortunately lost to an internal server error.",
+            "finishRegistration",
+            responseJson);
   }
 
   private final class StartAuthenticationResponse {
@@ -227,7 +227,7 @@ public class WebAuthnRestResource {
     public final StartAuthenticationActions actions = new StartAuthenticationActions();
 
     private StartAuthenticationResponse(AssertionRequestWrapper request)
-        throws MalformedURLException {
+            throws MalformedURLException {
       this.request = request;
     }
   }
@@ -241,14 +241,15 @@ public class WebAuthnRestResource {
   @Consumes("application/x-www-form-urlencoded")
   @Path("authenticate")
   @POST
-  public Response startAuthentication(@FormParam("username") String username)
-      throws MalformedURLException {
+  public Response startAuthentication(@FormParam("username") String username2)
+          throws MalformedURLException {
+    String username = null;
     logger.trace("startAuthentication username: {}", username);
     Either<List<String>, AssertionRequestWrapper> request =
-        server.startAuthentication(Optional.ofNullable(username));
+            server.startAuthentication(Optional.ofNullable(username));
     if (request.isRight()) {
       return startResponse(
-          "startAuthentication", new StartAuthenticationResponse(request.right().get()));
+              "startAuthentication", new StartAuthenticationResponse(request.right().get()));
     } else {
       return messagesJson(Response.status(Status.BAD_REQUEST), request.left().get());
     }
@@ -260,44 +261,44 @@ public class WebAuthnRestResource {
     logger.trace("finishAuthentication responseJson: {}", responseJson);
 
     Either<List<String>, WebAuthnServer.SuccessfulAuthenticationResult> result =
-        server.finishAuthentication(responseJson);
+            server.finishAuthentication(responseJson);
 
     return finishResponse(
-        result,
-        "Authentication verification failed; further error message(s) were unfortunately lost to an internal server error.",
-        "finishAuthentication",
-        responseJson);
+            result,
+            "Authentication verification failed; further error message(s) were unfortunately lost to an internal server error.",
+            "finishAuthentication",
+            responseJson);
   }
 
   @Path("action/deregister")
   @POST
   public Response deregisterCredential(
-      @NonNull @FormParam("sessionToken") String sessionTokenBase64,
-      @NonNull @FormParam("credentialId") String credentialIdBase64)
-      throws MalformedURLException, Base64UrlException {
+          @NonNull @FormParam("sessionToken") String sessionTokenBase64,
+          @NonNull @FormParam("credentialId") String credentialIdBase64)
+          throws MalformedURLException, Base64UrlException {
     logger.trace(
-        "deregisterCredential sesion: {}, credentialId: {}",
-        sessionTokenBase64,
-        credentialIdBase64);
+            "deregisterCredential sesion: {}, credentialId: {}",
+            sessionTokenBase64,
+            credentialIdBase64);
 
     final ByteArray credentialId;
     try {
       credentialId = ByteArray.fromBase64Url(credentialIdBase64);
     } catch (Base64UrlException e) {
       return messagesJson(
-          Response.status(Status.BAD_REQUEST),
-          "Credential ID is not valid Base64Url data: " + credentialIdBase64);
+              Response.status(Status.BAD_REQUEST),
+              "Credential ID is not valid Base64Url data: " + credentialIdBase64);
     }
 
     Either<List<String>, DeregisterCredentialResult> result =
-        server.deregisterCredential(ByteArray.fromBase64Url(sessionTokenBase64), credentialId);
+            server.deregisterCredential(ByteArray.fromBase64Url(sessionTokenBase64), credentialId);
 
     if (result.isRight()) {
       return finishResponse(
-          result,
-          "Failed to deregister credential; further error message(s) were unfortunately lost to an internal server error.",
-          "deregisterCredential",
-          "");
+              result,
+              "Failed to deregister credential; further error message(s) were unfortunately lost to an internal server error.",
+              "deregisterCredential",
+              "");
     } else {
       return messagesJson(Response.status(Status.BAD_REQUEST), result.left().get());
     }
@@ -309,12 +310,12 @@ public class WebAuthnRestResource {
     logger.trace("deleteAccount username: {}", username);
 
     Either<List<String>, JsonNode> result =
-        server.deleteAccount(
-            username,
-            () ->
-                ((ObjectNode)
-                        jsonFactory.objectNode().set("success", jsonFactory.booleanNode(true)))
-                    .set("deletedAccount", jsonFactory.textNode(username)));
+            server.deleteAccount(
+                    username,
+                    () ->
+                            ((ObjectNode)
+                                    jsonFactory.objectNode().set("success", jsonFactory.booleanNode(true)))
+                                    .set("deletedAccount", jsonFactory.textNode(username)));
 
     if (result.isRight()) {
       return Response.ok(result.right().get().toString()).build();
@@ -335,10 +336,10 @@ public class WebAuthnRestResource {
   }
 
   private Response finishResponse(
-      Either<List<String>, ?> result,
-      String jsonFailMessage,
-      String methodName,
-      String responseJson) {
+          Either<List<String>, ?> result,
+          String jsonFailMessage,
+          String methodName,
+          String responseJson) {
     if (result.isRight()) {
       try {
         return Response.ok(writeJson(result.right().get())).build();
@@ -354,8 +355,8 @@ public class WebAuthnRestResource {
 
   private Response jsonFail() {
     return Response.status(Status.INTERNAL_SERVER_ERROR)
-        .entity("{\"messages\":[\"Failed to encode response as JSON\"]}")
-        .build();
+            .entity("{\"messages\":[\"Failed to encode response as JSON\"]}")
+            .build();
   }
 
   private Response messagesJson(ResponseBuilder response, String message) {
@@ -366,19 +367,19 @@ public class WebAuthnRestResource {
     logger.debug("Encoding messages as JSON: {}", messages);
     try {
       return response
-          .entity(
-              writeJson(
-                  jsonFactory
-                      .objectNode()
-                      .set(
-                          "messages",
-                          jsonFactory
-                              .arrayNode()
-                              .addAll(
-                                  messages.stream()
-                                      .map(jsonFactory::textNode)
-                                      .collect(Collectors.toList())))))
-          .build();
+              .entity(
+                      writeJson(
+                              jsonFactory
+                                      .objectNode()
+                                      .set(
+                                              "messages",
+                                              jsonFactory
+                                                      .arrayNode()
+                                                      .addAll(
+                                                              messages.stream()
+                                                                      .map(jsonFactory::textNode)
+                                                                      .collect(Collectors.toList())))))
+              .build();
     } catch (JsonProcessingException e) {
       logger.error("Failed to encode messages as JSON: {}", messages, e);
       return jsonFail();
